@@ -84,12 +84,16 @@ public class SleepLess implements Runnable, ActionListener {
       // the screen saver
       if(moveMouse) {
         pi = MouseInfo.getPointerInfo();
-        int x = pi.getLocation().x;
-        int y = pi.getLocation().y;
+        int x = 0, y = 0;
+        try {    // Catch NullPointerException when screen is locked
+          x = pi.getLocation().x;
+          y = pi.getLocation().y;
+        } catch(Exception e) {
+          System.out.println(e);
+        }
         trayIcon.setToolTip("Sleep Less - " + new Timestamp(System.currentTimeMillis()));
         System.out.println(new Timestamp(System.currentTimeMillis()));
-        //System.out.println("X: " + x + " Y: " + y + " CTR = " + ctr);
-        r.mouseMove(x,y);
+        r.mouseMove(x+1,y);
         if(ctr%5==0) System.gc();
       }
     }
