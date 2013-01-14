@@ -57,7 +57,7 @@ public class SleepLess implements Runnable, ActionListener {
       popup.add(exit);
 
       // Create Icon
-      trayIcon = new TrayIcon(imageOn, "Sleep Less - " + ctr, popup);
+      trayIcon = new TrayIcon(imageOn, "Sleep Less - " + new Timestamp(System.currentTimeMillis()), popup);
 
       trayIcon.setImageAutoSize(true);
       trayIcon.addActionListener(this);
@@ -78,15 +78,15 @@ public class SleepLess implements Runnable, ActionListener {
   public void run() {
     ctr = 1;
     while(true) {
-      r.delay(600);
+      r.delay(60000);
       ctr++;
-      trayIcon.setToolTip("Sleep Less - " + ctr);
       // If moveMouse is true, that means we want to disable
       // the screen saver
       if(moveMouse) {
         pi = MouseInfo.getPointerInfo();
         int x = pi.getLocation().x;
         int y = pi.getLocation().y;
+        trayIcon.setToolTip("Sleep Less - " + new Timestamp(System.currentTimeMillis()));
         System.out.println(new Timestamp(System.currentTimeMillis()));
         //System.out.println("X: " + x + " Y: " + y + " CTR = " + ctr);
         r.mouseMove(x,y);
