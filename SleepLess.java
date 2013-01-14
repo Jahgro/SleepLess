@@ -10,6 +10,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.sql.Timestamp;
 
 import javax.imageio.ImageIO;
 
@@ -77,16 +78,17 @@ public class SleepLess implements Runnable, ActionListener {
   public void run() {
     ctr = 1;
     while(true) {
-      r.delay(60000);
+      r.delay(600);
       ctr++;
+      trayIcon.setToolTip("Sleep Less - " + ctr);
       // If moveMouse is true, that means we want to disable
       // the screen saver
       if(moveMouse) {
-        trayIcon.setToolTip("Sleep Less - " + ctr);
         pi = MouseInfo.getPointerInfo();
         int x = pi.getLocation().x;
         int y = pi.getLocation().y;
-        System.out.println("X: " + x + " Y: " + y + " CTR = " + ctr);
+        System.out.println(new Timestamp(System.currentTimeMillis()));
+        //System.out.println("X: " + x + " Y: " + y + " CTR = " + ctr);
         r.mouseMove(x,y);
         if(ctr%5==0) System.gc();
       }
