@@ -10,7 +10,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
-import java.sql.Time;
 
 import javax.imageio.ImageIO;
 
@@ -78,7 +77,7 @@ public class SleepLess implements Runnable, ActionListener {
   public void run() {
     ctr = 1;
     while(true) {
-      r.delay(600);
+      r.delay(60000);
       ctr++;
       // If moveMouse is true, that means we want to disable
       // the screen saver
