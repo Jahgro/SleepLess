@@ -1,5 +1,4 @@
 import java.awt.AWTException;
-import java.awt.Image;
 import java.awt.MenuItem;
 import java.awt.MouseInfo;
 import java.awt.PointerInfo;
@@ -11,28 +10,37 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.sql.Time;
 
 import javax.imageio.ImageIO;
 
-public class SleepLess implements Runnable, ActionListener { 
+public class SleepLess implements Runnable, ActionListener {
   private Robot r;
   private PointerInfo pi; 
-  static SystemTray tray = null;
-  static TrayIcon trayIcon = null;
-  static BufferedImage imageOn = null;
-  static BufferedImage imageOff = null;
-  static ActionListener alDoubleClickOn  = null;
-  static ActionListener alDoubleClickOff = null;
+  
+  private SystemTray tray;
+  private Thread runner;
+  
+  private PopupMenu popup;
+  private MenuItem exit;
+  
+  private TrayIcon trayIcon      = null;
+  private BufferedImage imageOn  = null;
+  private BufferedImage imageOff = null;
+  private Boolean moveMouse      = true;
+  private int ctr                = 1;
 
   public SleepLess() {
-    try{r = new Robot();}catch(Exception e) {System.exit(0);}
-  }
+    // Robot needed to sleep
+    try{
+      r = new Robot();
+    }catch(Exception e) {
+      System.exit(0);
+    }
 
-  public static void main(String[] args) {
     tray = SystemTray.getSystemTray();
-    SleepLess b = new SleepLess();
-    Thread t = new Thread(b);
-    t.start();                 // Start running
+    runner = new Thread(this);
+    runner.start();              // Start running
 
     if (SystemTray.isSupported()) {  // Create system icon
       // Get icon image
@@ -40,87 +48,69 @@ public class SleepLess implements Runnable, ActionListener {
         imageOn  = ImageIO.read(SleepLess.class.getResource("/icon/zzz.gif"));
         imageOff = ImageIO.read(SleepLess.class.getResource("/icon/aaa.gif"));
       } catch (IOException e1) {
-        // TODO Auto-generated catch block
         e1.printStackTrace();
       }
 
       // Create icon menu
-      PopupMenu popup = new PopupMenu();
-      MenuItem exit = new MenuItem("Exit");
+      popup = new PopupMenu();
+      exit = new MenuItem("Exit");
       popup.add(exit);
 
-      trayIcon = new TrayIcon(imageOn, "SleepLess", popup);
+      // Create Icon
+      trayIcon = new TrayIcon(imageOn, "Sleep Less - " + ctr, popup);
 
-      // Create ActionListeners
-      ActionListener alExit = new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          System.out.println("Exiting...");
-          System.exit(0);
-        }
-      };
+      trayIcon.setImageAutoSize(true);
+      trayIcon.addActionListener(this);
+      exit.addActionListener(this);
 
-      /*ActionListener*/ alDoubleClickOn = new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          trayIcon.setImage(imageOff);
-          trayIcon.removeActionListener(alDoubleClickOn);
-          trayIcon.addActionListener(alDoubleClickOff);
-          System.out.println("Click On...");
-          //System.exit(0);
-        }
-      };
-
-      /*ActionListener*/ alDoubleClickOff = new ActionListener() {
-        public void actionPerformed(ActionEvent e) {
-          trayIcon.setImage(imageOn);
-          trayIcon.removeActionListener(alDoubleClickOff);
-          trayIcon.addActionListener(alDoubleClickOn);
-          System.out.println("Click Off...");
-          //System.exit(0);
-        }
-      };
-
-    trayIcon.setImageAutoSize(true);
-    trayIcon.addActionListener(alDoubleClickOn);
-    exit.addActionListener(alExit);
-
-    try {
-      tray.add(trayIcon);
-    }
-    catch (AWTException e) {
-        System.err.println("TrayIcon could not be added.");
+      try {
+        tray.add(trayIcon);
+      }
+      catch (AWTException e) {
+        System.err.println("Error: Icon could not be added.");
       }
     }   
     else {
-      //  System Tray is not supported
-    }
+      System.err.println("Error: Icon cannot be implimented");
+    } 
   }
 
   public void run() {
-    // We want to run forever now
-    //int cycles = 1;
-    //try {
-    //  cycles = Integer.parseInt(JOptionPane.showInputDialog(null, "How many minutes?"));
-    //}
-    //catch(Exception e) {
-    //  cycles = 60; 
-    //}
-    
-    int ctr = 1;
-    while( true /* ctr <= cycles */) {
-      r.delay(60000);
+    ctr = 1;
+    while(true) {
+      r.delay(600);
       ctr++;
-
-      pi = MouseInfo.getPointerInfo();
-      int x = pi.getLocation().x;
-      int y = pi.getLocation().y;
-
-      r.mouseMove(x,y);
-      if(ctr%5==0) System.gc();
+      // If moveMouse is true, that means we want to disable
+      // the screen saver
+      if(moveMouse) {
+        trayIcon.setToolTip("Sleep Less - " + ctr);
+        pi = MouseInfo.getPointerInfo();
+        int x = pi.getLocation().x;
+        int y = pi.getLocation().y;
+        System.out.println("X: " + x + " Y: " + y + " CTR = " + ctr);
+        r.mouseMove(x,y);
+        if(ctr%5==0) System.gc();
+      }
     }
   }
 
   @Override
   public void actionPerformed(ActionEvent e) {
-    // TODO Auto-generated method stub
+    if(e.getSource() == exit) {
+      System.out.println("Exiting...");
+      System.exit(0);
+    }
+    else if(e.getSource() == trayIcon) {
+      if(moveMouse) {
+        trayIcon.setImage(imageOff);
+        moveMouse = false;            // Turn mouse mover off
+        System.out.println("Turning Off...");
+      }
+      else {
+        trayIcon.setImage(imageOn);
+        moveMouse = true;              // Turn mouse mover on
+        System.out.println("Turning On...");
+      }
+    }
   }
 }
